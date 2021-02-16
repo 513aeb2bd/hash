@@ -130,9 +130,17 @@ void hash_256 (void* msg, ui64 num_bytes, ui64* hash) {
             }
 
             swp -= 1;
-            dr[swp] = map[dr[swp]];
+            dr[swp] = map[dr[swp] + swp + idxpnt];
         }
 
+        U = *(ui64*)dr;
+
+#ifdef DEBUGHASH
+        printf ("rep %u\n", i_rep);
+        printf ("  M* = %016llx | M1 = %016llx | M2 = %016llx | M3 = %016llx\n"
+                , *M, *Ma1, *Ma2, *Ma3);
+        printf ("  U = %016llx\n", U);
+#endif
         // calculate A
         *(ui64*)dr = hash[0] + (*M ^ *Ma1 ^ ~*Ma2 ^ *Ma3);
 
@@ -148,12 +156,9 @@ void hash_256 (void* msg, ui64 num_bytes, ui64* hash) {
         }
 
 #ifdef DEBUGHASH
-        printf ("rep %u\n", i_rep);
-        printf ("  M* = %016llx | M1 = %016llx | M2 = %016llx | M3 = %016llx\n"
-                , *M, *Ma1, *Ma2, *Ma3);
-        printf ("  hash0 add (M* xor M1 xor (not M2) xor M3) = %016llx\n"
+        printf ("  H0 + (M* ^ M1 ^ ~M2 ^ M3) = %016llx | "
                 , *(ui64*)dr);
-        printf ("  new point idx = %02x | ", idxpnt);
+        printf ("idxpnt = %02x | ", idxpnt);
 #endif
 
         swp = 8;
@@ -170,7 +175,7 @@ void hash_256 (void* msg, ui64 num_bytes, ui64* hash) {
         A += hash[1];
 
 #ifdef DEBUGHASH
-        printf ("map data = %016llx | ", A - hash[1]);
+        printf ("map dat = %016llx | ", A - hash[1]);
         printf ("A = %016llx\n", A);
 #endif
 
@@ -184,10 +189,9 @@ void hash_256 (void* msg, ui64 num_bytes, ui64* hash) {
         R = *B << rotat | *B >> (64 - rotat);
 
 #ifdef DEBUGHASH
-        printf ("  hash1 and hash2 xor (not hash1) and hash3 = %016llx\n"
-                , *(ui64*)dr);
-        printf ("  rotat idx = %02x | ", idxrot);
-        printf ("masked rotat count = %02x | ", rotat);
+        printf ("  H1 & H2 ^ ~H1 & H3 = %016llx | ", *(ui64*)dr);
+        printf ("idxrot = %02x | ", idxrot);
+        printf ("rotat = %02x | ", rotat);
         printf ("B = %016llx | B rol %02x = %016llx |\n", *B, rotat, R);
 #endif
 
